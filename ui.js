@@ -1,4 +1,4 @@
-/* Page behaviour: pick or drop a file, repair it, download the result. */
+/* Page behaviour: pick or drop activities.csv, convert it, download the xlsx. */
 (function () {
   "use strict";
 
@@ -27,17 +27,21 @@
   }
 
   function againButton() {
-    return el("button", { type: "button", className: "button secondary", textContent: "Nog een bestand herstellen", onclick: () => input.click() });
+    return el("button", { type: "button", className: "button secondary", textContent: "Ander bestand kiezen", onclick: () => input.click() });
   }
 
   function showSuccess(result) {
     const body = [
-      el("p", { textContent: `${result.activities} activiteiten hersteld. Het bestand “${result.fileName}” staat in je map Downloads.` }),
+      el("p", { textContent: `${result.activities} activiteiten omgezet. Het bestand “${result.fileName}” staat in je map Downloads.` }),
     ];
-    if (result.problems.length) {
+    const notes = [
+      ...result.problems.map((p) => `Rij ${p.row}: ${p.fields} in plaats van ${result.width} gegevens (${p.preview})`),
+      ...result.warnings,
+    ];
+    if (notes.length) {
       body.push(el("div", { className: "warning" }, [
-        `Let op: ${result.problems.length} activiteit(en) konden niet volledig hersteld worden. Kijk die even na in Excel:`,
-        el("ul", {}, result.problems.map((p) => el("li", { textContent: `Rij ${p.row + 1}: ${p.preview}` }))),
+        "Let op: kijk deze rijen even na in Excel.",
+        el("ul", {}, notes.map((text) => el("li", { textContent: text }))),
       ]));
     }
     body.push(el("div", { className: "actions" }, [
@@ -56,18 +60,18 @@
 
   async function handleFile(file) {
     if (!file) return;
-    if (!/\.xlsx$/i.test(file.name)) {
-      showError(`“${file.name}” is geen Excel-bestand. Kies een bestand dat eindigt op .xlsx.`);
+    if (!/\.csv$/i.test(file.name)) {
+      showError(StravaFixer.NOT_STRAVA);
       return;
     }
     dropzone.classList.add("busy");
-    show("", "Bezig met herstellen…", [el("p", { textContent: file.name })]);
+    show("", "Bezig met omzetten…", [el("p", { textContent: file.name })]);
     try {
       const data = new Uint8Array(await file.arrayBuffer());
       // Let the browser paint the "busy" state before the (short) blocking work.
       await new Promise((resolve) => setTimeout(resolve, 30));
-      const result = StravaFixer.fixWorkbook(XLSX, Papa, data);
-      result.fileName = file.name.replace(/\.xlsx$/i, "") + "_fixed.xlsx";
+      const result = StravaFixer.convertCsv(XLSX, Papa, data);
+      result.fileName = file.name.replace(/\.csv$/i, "") + ".xlsx";
       lastResult = result;
       download();
       showSuccess(result);

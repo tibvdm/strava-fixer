@@ -3,26 +3,25 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Strava-bestand herstellen</title>
-  <meta name="description" content="Herstel een Strava-export in Excel waarvan de regels gesplitst zijn en de tekens verminkt.">
+  <title>Strava naar Excel</title>
+  <meta name="description" content="Zet een Strava activities.csv om naar een correct Excel-bestand.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏃</text></svg>">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <main>
-    <h1>Strava-bestand herstellen</h1>
+    <h1>Strava naar Excel</h1>
     <p class="lead">
-      Sommige regels in je Strava-bestand zijn in stukken gebroken en speciale tekens
-      zien er vreemd uit (zoals <code>okÃ©</code> in plaats van <code>oké</code>).
-      Deze pagina zet dat recht.
+      Zet je Strava-bestand <code>activities.csv</code> om naar een Excel-bestand
+      met één kolom per gegeven en alle tekst, emoji en datums correct.
     </p>
 
     <label id="dropzone" class="dropzone" for="file">
-      <input id="file" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+      <input id="file" type="file" accept=".csv,text/csv">
       <span class="drop-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0-4.5 4.5M12 4l4.5 4.5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
       </span>
-      <span class="drop-title">Sleep je Strava-bestand hierheen</span>
+      <span class="drop-title">Sleep je activities.csv hierheen</span>
       <span class="drop-or">of</span>
       <span class="button">Kies bestand</span>
     </label>
@@ -30,9 +29,9 @@
     <section id="status" class="status" role="status" aria-live="polite" hidden></section>
 
     <ol class="steps">
-      <li>Kies of sleep je Excel-bestand (<code>.xlsx</code>) met je Strava-activiteiten.</li>
-      <li>Het herstelde bestand wordt meteen gedownload. Je vindt het in je map <strong>Downloads</strong>, met <code>_fixed</code> achter de naam.</li>
-      <li>Open dat nieuwe bestand in Excel. Je oorspronkelijke bestand blijft onaangeroerd.</li>
+      <li>Sleep je bestand <code>activities.csv</code> hierheen, of klik op <strong>Kies bestand</strong>.</li>
+      <li>Het Excel-bestand <code>activities.xlsx</code> wordt meteen gedownload. Je vindt het in je map <strong>Downloads</strong>.</li>
+      <li>Open <code>activities.xlsx</code> in Excel.</li>
     </ol>
 
     <p class="privacy">

@@ -1,21 +1,24 @@
 # strava-fixer
 
-A small web page that repairs a Strava activities export that was opened in Excel and ended up broken:
-
-- every activity is one long comma-separated line in column A,
-- activities whose description contains line breaks are split over several rows,
-- special characters and emoji are garbled (`okÃ©` instead of `oké`).
+A small web page that converts a Strava `activities.csv` export into a clean Excel file.
 
 **Use it here: https://tibvdm.github.io/strava-fixer/**
 
-Drop the `.xlsx` file on the page and a repaired `<name>_fixed.xlsx` is downloaded, with one column per field.
+Drop `activities.csv` on the page and `activities.xlsx` is downloaded:
+
+- one column per field, with descriptions that contain commas or line breaks kept intact,
+- text, accents and emoji exactly as in the export (UTF-8),
+- columns that only contain numbers as real numbers, the activity date as a real Excel date,
+- nothing turned into a formula (`=…` or `- …` stays text).
+
 The file is processed entirely in the browser; nothing is uploaded.
 
 ## How it works
 
-`app.js` joins the lines back together, parses them as CSV (with [Papa Parse](https://www.papaparse.com/)),
-undoes the UTF-8 → Windows-1252 mix-up and writes a new workbook (with [SheetJS](https://sheetjs.com/)).
-Records that don't end up with as many fields as the header are listed on the page.
+`app.js` parses the CSV with [Papa Parse](https://www.papaparse.com/) and writes the workbook with
+[SheetJS](https://sheetjs.com/). Rows that don't have as many fields as the header are listed on the page.
+The first `Afstand` column is Strava's display text (km for most sports, metres for swimming) and stays text;
+the second `Afstand` column holds the distance in metres as a number.
 
 The page is plain static HTML, served by GitHub Pages from the `main` branch. The libraries are vendored in `vendor/`:
 
