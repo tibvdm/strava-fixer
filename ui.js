@@ -38,11 +38,16 @@
       ...result.problems.map((p) => `Rij ${p.row}: ${p.fields} in plaats van ${result.width} gegevens (${p.preview})`),
       ...result.warnings,
     ];
-    if (notes.length) {
-      body.push(el("div", { className: "warning" }, [
-        "Let op: kijk deze rijen even na in Excel.",
-        el("ul", {}, notes.map((text) => el("li", { textContent: text }))),
-      ]));
+    if (result.resavedByExcel || notes.length) {
+      const intro = result.resavedByExcel
+        ? "Let op: dit bestand is ooit in Excel geopend en opnieuw opgeslagen. Het werd zo goed mogelijk hersteld, maar een origineel activities.csv is betrouwbaarder."
+        : "Let op: kijk deze rijen even na in Excel.";
+      const children = [intro];
+      if (notes.length) {
+        if (result.resavedByExcel) children.push(el("p", { textContent: "Kijk deze rijen even na in Excel:" }));
+        children.push(el("ul", {}, notes.map((text) => el("li", { textContent: text }))));
+      }
+      body.push(el("div", { className: "warning" }, children));
     }
     body.push(el("div", { className: "actions" }, [
       el("button", { type: "button", className: "button", textContent: "Opnieuw downloaden", onclick: download }),

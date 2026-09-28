@@ -106,6 +106,26 @@
     return Math.max(8, Math.min(50, longest + 2));
   }
 
+  function parseCsv(Papa, text) {
+    return Papa.parse(text, { delimiter: ",", quoteChar: '"', skipEmptyLines: true }).data;
+  }
+
+  function looksLikeStrava(records) {
+    const [header, firstRow] = records;
+    return Boolean(header && firstRow && header.length >= 10 && /^\d+$/.test(firstRow[0]));
+  }
+
+  /**
+   * A CSV opened in Excel with ";" as separator puts every line in one cell; saving it
+   * again wraps each line containing a quote in quotes and doubles the inner quotes.
+   * Undo that: return the original lines, or null if the file is not in that shape.
+   */
+  function unwrapExcelLines(Papa, text) {
+    const rows = Papa.parse(text, { delimiter: ";", quoteChar: '"', skipEmptyLines: true }).data;
+    if (rows.length < 2 || rows.some((r) => r.length !== 1)) return null;
+    return rows.map((r) => r[0]).join("\n");
+  }
+
   /**
    * Convert a Strava activities.csv. `data` is the file contents as a Uint8Array.
    * Returns the workbook plus a summary; throws FixError for unusable input.
@@ -115,11 +135,15 @@
     if (data[0] === 0x50 && data[1] === 0x4b) throw new FixError(NOT_STRAVA);
 
     const { text, encoding } = decodeText(data);
-    const parsed = Papa.parse(text, { delimiter: ",", quoteChar: '"', skipEmptyLines: true });
-    const [header, ...rows] = parsed.data;
-    if (!header || header.length < 10 || rows.length === 0 || !/^\d+$/.test(rows[0][0])) {
-      throw new FixError(NOT_STRAVA);
+    let records = parseCsv(Papa, text);
+    let resavedByExcel = false;
+    if (!looksLikeStrava(records)) {
+      const unwrapped = unwrapExcelLines(Papa, text);
+      records = unwrapped === null ? null : parseCsv(Papa, unwrapped);
+      if (!records || !looksLikeStrava(records)) throw new FixError(NOT_STRAVA);
+      resavedByExcel = true;
     }
+    const [header, ...rows] = records;
 
     const width = header.length;
     const good = rows.filter((r) => r.length === width);
@@ -135,7 +159,8 @@
       const r = i + 1;
       const ok = record.length === width;
       if (!ok) {
-        problems.push({ row: r + 1, fields: record.length, preview: record.slice(0, 3).join(" | ") });
+        const preview = record.slice(0, 3).map((f) => f.replace(/\s+/g, " ").slice(0, 40)).join(" | ");
+        problems.push({ row: r + 1, fields: record.length, preview });
       }
       record.forEach((value, c) => {
         const where = `Rij ${r + 1}, kolom ${c + 1}`;
@@ -152,7 +177,7 @@
 
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, sheet, "activities");
-    return { workbook, activities: rows.length, width, types, encoding, problems, warnings };
+    return { workbook, activities: rows.length, width, types, encoding, resavedByExcel, problems, warnings };
   }
 
   return { FixError, NOT_STRAVA, decodeText, parseDate, columnTypes, convertCsv };
